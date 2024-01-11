@@ -1,7 +1,4 @@
-.gitignore
 .env
-.idea/*
-
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm,python,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm,python,macos
 
