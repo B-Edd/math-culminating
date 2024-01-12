@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+import time
 
 load_dotenv()
 client = OpenAI(
@@ -43,6 +44,7 @@ while cont != 'ok':
 
 os.system('clear')
 
+
 # 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
 
 def askgpt(level):
@@ -84,23 +86,23 @@ def askgpt(level):
                            "the steps to solve it. The student is trying to solve it and don't give any help."
                            "In addition, make the answer of the question lower than 500 and a whole number. Make"
                            " the questions so that students doesn't need to show their work and only needs"
-                           " to provide the answer. Also, make the question so that the student is able to solve"
+                           " to provide the answer. Eg. answer is 1/2 and student answers 0.5, that is considered"
+                           "correct. Also, make the question so that the student is able to solve"
                            " without a calculator. The question should be questions for grade nines and try to make"
                            "the questions questions from grade nine EQAO. Do not make the"
                            " question about cubic functions or need any functions. Only ask 1 question."
-                           "Make it so students can solve the question able to solve with hand without a calculator."
+                           "Make it so students can solve the question able to solve with hand without a calculator. "
+                           "Do not write your answer in your question."
             },
             {
                 "role": "user",
-                "content": str(level),
+                "content": "level" + str(level),
             }
         ],
-        model="gpt-4",
+        model="gpt-3.5-turbo",
     )
     message = chat_completion.choices[0].message.content
     return message
-
-
 
 
 def checkgpt(a, q):
@@ -108,53 +110,17 @@ def checkgpt(a, q):
         messages=[
             {
                 "role": "system",
-                "content": "You are going to check a question's answer with a students answer for math. The students "
-                           "answer might contain an asterisks, which means multiply. The question and answer "
-                           "are going to be formatted like this: students_answer | question. "
-                           "Look at the question to see if the students answer is correct. Double check if you're "
-                           "correct. If the students answer is a rounded version of the answer, it is correct. If "
-                           "the students version doesn't have units, but the question doesn't explicitly ask for"
-                           "units, its correct. Also, if the student provides like the answer as a power or a fraction"
-                           ", the answer is correct."
-                           " REPLY WITH EITHER 'yes' or 'no'. Respond yes if the"
-                           "answer is correct and no if the answer is wrong. "
-                           "Also, if the answer is wrong, You are "
-                           "going to give an explanation on a math question and then provide the answer at the "
-                           "start. The math question is going to be provided. This is how I want you to format it with"
-                           "the answer at the front:"
-                           "Explanation: your_explanation_here\nAnswer: your_answer_here. If the answer"
-                           "is correct, answer with only 'yes'."
+                "content": "Evaluate the student's math answer, considering various factors. The student's response may involve asterisks to denote multiplication. The format for the question and answer will be: students_answer | corresponding question. Examine the question to determine the correctness of the student's answer. Confirm your assessment and consider the following criteria: If the student's answer is a rounded version of the actual answer, it is considered correct. If the question does not explicitly ask for units, and the student's answer lacks units, consider it correct. If the student's answer is a decimal instead of a fraction, consider it correct. Ignore every single period. Accept answers presented as powers or fractions as correct. Allow variations in comma placement or the absence of commas in the student's answer. For example, if the answer is 5,670 and the student writes 5670, it is considered correct. If the student writes a unit, but the numerical answer is correct, consider it correct. If the student's answer meets any of these conditions, respond with 'yes' without the quotations. For multiplication, use 'x,' and for division, use '/.' Otherwise, provide an explanation about how to solve the question and state the correct answer in the following format (without quotation marks): 'Explanation: your_explanation_here\nAnswer: your_answer_here.' Please provide the math question for evaluation."
             },
             {
                 "role": "user",
                 "content": str(a) + " | " + str(q),
             }
         ],
-        model="gpt-4",
+        model="gpt-3.5-turbo",
     )
     answer = chat_completion.choices[0].message.content
     return answer
-
-
-def explaingpt(q):
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "system",
-                "content": "You are going to give an explanation on a math question and then provide the answer at the "
-                           "start. The math question is going to be provided. This is how I want you to format it with"
-                           "the answer at the front:"
-                           "Answer: your_answer_here\nExplanation: your_explanation_here"
-            },
-            {
-                "role": "user",
-                "content": str(q),
-            }
-        ],
-        model="gpt-4",
-    )
-    explanation = chat_completion.choices[0].message.content
-    return explanation
 
 
 def replace_bracket(a):
@@ -167,22 +133,32 @@ continuing = True
 level = 1
 score = 0
 while continuing:
-    chatgpt_question = str(askgpt(level))
+    chatgpt_question = str(askgpt(level)).replace("\\times", "x")
     print(f"\nScore: {score}\nLevel: {level}\n")
     print(chatgpt_question)
 
     print()
-    user_answer = input("\nYour answer: ").replace(" ", "")
+    user_answer = input("\nYour answer: ")
 
     # print(checkgpt(user_answer, chatgpt_answer, chatgpt_question))
     check = str(checkgpt(user_answer, chatgpt_question).lower())
-    if check == "yes":
+    try:
+        correct_ans = (check.replace(" ", "")).split("answer: ")[1]
+        print("correctaseas", correct_ans)
+    except IndexError:
+        correct_ans = 3
+    if 'y|es' in check or 'yes' in check or correct_ans == user_answer or str(user_answer) + "." in check:
         print("Congratulations!! 🎉🎉")
+        score += int(level)
+        print(f"Score: {score}")
         input("\nContinue: ")
     else:
         print("Sorry, that was not correct.")
         print(check)
+        print(f"your answer: {user_answer}")
         print(f"Score: {score}")
+        time.sleep(3)
+    if level == 14:
         continuing = False
         if high_score:
             if score > int(high_score.split(", ")[1]):
@@ -196,5 +172,4 @@ while continuing:
         exit()
     print("...")
     os.system("clear")
-    score += int(level)
     level += 1
