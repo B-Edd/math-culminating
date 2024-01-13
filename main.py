@@ -45,8 +45,6 @@ while cont != 'ok':
 os.system('clear')
 
 
-# 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
-
 def askgpt(level):
     chat_completion = client.chat.completions.create(
         messages=[
