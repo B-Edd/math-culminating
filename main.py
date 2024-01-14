@@ -121,12 +121,6 @@ def checkgpt(a, q):
     return answer
 
 
-def replace_bracket(a):
-    h = a.replace("(", "")
-    e = h.replace(")", "")
-    return e
-
-
 continuing = True
 level = 1
 score = 0
